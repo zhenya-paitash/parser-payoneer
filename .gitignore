@@ -1,0 +1,10 @@
+/node_modules
+/dist
+/OLD
+/.vscode
+/.userdata_cache
+/src/config/config.pkg.service.ts
+
+.env
+combine.log
+error.log

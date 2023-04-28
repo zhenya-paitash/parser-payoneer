@@ -1,0 +1,41 @@
+{
+  "name": "internal-payoneer-api",
+  "version": "0.9.9",
+  "description": "payoneer parser console application",
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node ./dist/main.js",
+    "dev": "tsc -p tsconfig.json & node ./dist/main.js",
+    "exe": "pkg ./dist/main.js -t node16-win-x64 --public --output ./dist/p.exe --compress GZip",
+    "speedtest:server": "autocannon -m GET 'http://localhost:3000' -d 10"
+  },
+  "keywords": [],
+  "author": "zhenya-paitash",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "colors": "^1.4.0",
+    "dotenv": "^16.0.3",
+    "fastify": "^4.15.0",
+    "form-data": "^4.0.0",
+    "moment": "^2.29.4",
+    "node-cron": "^3.0.2",
+    "node-fetch": "^2.6.9",
+    "puppeteer": "^19.9.1",
+    "winston": "^3.8.2",
+    "winston-transport": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^8.2.0",
+    "@types/node": "^18.15.11",
+    "@types/node-cron": "^3.0.7",
+    "@types/node-fetch": "^2.6.3",
+    "@typescript-eslint/eslint-plugin": "^5.58.0",
+    "@typescript-eslint/parser": "^5.58.0",
+    "autocannon": "^7.10.0",
+    "eslint": "^8.38.0",
+    "pkg": "^5.8.1",
+    "typescript": "^5.0.4"
+  }
+}
