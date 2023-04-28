@@ -1,7 +1,7 @@
-**Name**: *Payoneer Parser Console Application*
-**Description**: *Console application for parsing and logging budget and transactions from your Payoneer accounts.*
-**Current LTS Version**: *0.9.8*
-**Stack**: *TypeScript, Fastify, Puppeteer*
+**Name**: *Payoneer Parser Console Application* <br/>
+**Current LTS Version**: *0.9.8* <br/>
+**Stack**: *TypeScript, Fastify, Puppeteer* <br/>
+**Description**: *Console application for parsing and logging budget and transactions from your Payoneer accounts.* <br/>
 
      888888ba                                                                               
      88    `8b                                                                              
