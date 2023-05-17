@@ -11,9 +11,9 @@ export type TLoggerLogCallback = winston.LogCallback
 
 export type TLoggerLogformFormat = winston.Logform.Format
 
-export type TLoggerLogLevels = 'info' | 'warn' | 'error' | 'debug' | 'http'
+export type TLoggerLogLevel = 'info' | 'warn' | 'error' | 'debug' | 'http'
 
-export type TLoggerLogLabel = 'app' | 'config' | 'api' | 'server' | 'parser'
+export type TLoggerLogLabel = 'app' | 'config' | 'api' | 'server' | 'parser' | 'logger'
 
 export type TLoggerJsonData = {
   [key: string]: any
@@ -24,9 +24,10 @@ export type TLoggerTelegramInfo = {
   users: number[]
 }
 
-export type TLoggerLogFiles = {
-  file: string
+export type TLoggerLogFile = {
+  filename: string
   filepath: string
+  paths: string[]
 }
 
 interface CustomWinstonTransportStreamOptions extends Transport.TransportStreamOptions {

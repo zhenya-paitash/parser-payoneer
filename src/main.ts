@@ -9,7 +9,6 @@ import { IConfigService } from "./config/config.interface";
 import { IApiService } from "./api/api.interface";
 import { Utils } from "./utils/utils.module";
 
-
 /* The Application class initializes various modules and services using
 configuration values and creates a logger for Telegram. */
 class Application {

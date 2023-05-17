@@ -1,18 +1,38 @@
 {
-  "name": "internal-payoneer-api",
-  "version": "0.9.9",
+  "name": "parser-payoneer",
+  "version": "1.0.0",
   "description": "payoneer parser console application",
-  "main": "./dist/main.js",
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "start": "node ./dist/main.js",
-    "dev": "tsc -p tsconfig.json & node ./dist/main.js",
-    "exe": "pkg ./dist/main.js -t node16-win-x64 --public --output ./dist/p.exe --compress GZip",
-    "speedtest:server": "autocannon -m GET 'http://localhost:3000' -d 10"
-  },
-  "keywords": [],
   "author": "zhenya-paitash",
   "license": "ISC",
+  "main": "./dist/main.js",
+  "bin": "./dist/main.js",
+  "pkg": {
+    "assets": [
+      ".env"
+    ],
+    "targets": [
+      "node16-win-x64"
+    ]
+  },
+  "scripts": {
+    "build": "npx tsc -p tsconfig.json",
+    "start": "node ./dist/main.js",
+    "dev": "npm run build && npm run start",
+    "build:exe": "npm run build && npx pkg . --output ./dist/parserpayoneer-win-x64.exe --compress GZip --public",
+    "speedtest:server": "npx autocannon -m GET 'http://localhost:3000' -d 10",
+    "lint": "npx eslint ./src",
+    "lint:fix": "npx eslint ./src --fix",
+    "format": "npx prettier --write \"./src/**/*.ts\""
+  },
+  "keywords": [
+    "payoneer",
+    "parser",
+    "typescript",
+    "nodejs",
+    "puppeteer",
+    "fastify",
+    "pkg"
+  ],
   "dependencies": {
     "axios": "^0.27.2",
     "colors": "^1.4.0",

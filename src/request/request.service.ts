@@ -1,6 +1,6 @@
 import fetch, { FetchError, Response, RequestInfo, RequestInit, HeadersInit, BodyInit } from 'node-fetch'
 import { IRequestResult, IRequestService, EnumRequestMethods } from "./request.interface";
-import { Utils } from '../utils/utils.module';
+import { LogRequest } from '../decorators';
 
 /* The RequestService class is a TypeScript implementation of a service that
 handles HTTP requests with authorization headers and error handling. */
@@ -77,6 +77,7 @@ export class RequestService implements IRequestService {
    * request, such as headers and other options that can be passed to the fetch API.
    * @return a Promise that resolves to an object of type IRequestResult.
    */
+  @LogRequest
   private async request(method: string, url: string, data: BodyInit | undefined, config: RequestInit): Promise<IRequestResult> {
     try {
       const fetchURL: RequestInfo | URL = this.baseURL + url
@@ -108,11 +109,6 @@ export class RequestService implements IRequestService {
         data: json ?? {}
       }
 
-      // TODO: remove this and add @Log decorator on all request
-      if (!json?.password && json?.needed !== false) {
-        Utils.log('http', result)
-      }
-
       return result
     } catch (e: FetchError | Error | any) {
       const result: IRequestResult = {
@@ -122,9 +118,6 @@ export class RequestService implements IRequestService {
         data: {},
       }
       if (e?.apiresponse) result.apiresponse = e.apiresponse
-
-      // Utils.log('http', result, 'api')
-      Utils.log('http', result)
 
       return result
     }

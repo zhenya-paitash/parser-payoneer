@@ -9,12 +9,17 @@ export interface IRequestGetUpdates {
   needed: boolean
 }
 
+export interface IRequestCaptchaResolve {
+  success: boolean
+  solution: string
+}
+
 export interface IRequestResult {
   success: boolean
   error: string | null
   status: number
   apiresponse?: string
-  data: IUser | IRequestGetUpdates | IRequestResponseData | object
+  data: IUser | IRequestGetUpdates | IRequestResponseData | IRequestCaptchaResolve | object
 }
 
 export interface IRequestService {

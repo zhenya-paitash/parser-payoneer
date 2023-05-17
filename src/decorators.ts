@@ -1,8 +1,9 @@
 import { FastifyRequest } from "fastify"
 import { Utils } from "./utils/utils.module"
 import { IServerResponse } from "./server/server.interface"
-import { IParserController } from "./parser/parser.interface"
-import { TLoggerLogLabel, TLoggerLogLevels } from "./logger/logger.interface"
+import { IParserController, IUser } from "./parser/parser.interface"
+import { TLoggerLogLabel, TLoggerLogLevel } from "./logger/logger.interface"
+import { IRequestGetUpdates, IRequestResult } from "./request/request.interface"
 
 /**
  * This is a TypeScript function that generates a class method decorator that
@@ -233,25 +234,20 @@ export function IsExist<E>(check: E) {
   }
 }
 
-// export function LogResult(level: TLoggerLogLevels, label?: TLoggerLogLabel) {
-//   return function<
-//     This,
-//     Args extends any[],
-//     Return extends Promise<any>,
-//     Fn extends (this: This, ...args: Args) => Return,
-//   >(
-//     target: Fn,
-//     context: ClassMethodDecoratorContext<This, Fn>
-//   ) {
-//     return function(this: This, ...args: Args): Return {
-//       const res = target.call(this, ...args)
-//       console.log(res)
-//       // Utils.log(level, res, label)
-//       return res
-//     }
-//   }
-// }
-export function LogResult(level: TLoggerLogLevels, label?: TLoggerLogLabel) {
+/**
+ * This is a TypeScript function that logs the result of a function call with a
+ * specified log level and label.
+ * @param {TLoggerLogLevel} level - a variable of type TLoggerLogLevel that
+ * specifies the log level for the log message.
+ * @param {TLoggerLogLabel} [label] - an optional label to be used in the log
+ * message
+ * @returns A higher-order function that decorates a class method with logging
+ * functionality. The returned function takes in the target method and its context
+ * as arguments, and returns an async function that calls the target method with
+ * the provided arguments, logs the result using the Utils.log function with the
+ * specified log level and label, and returns the result.
+ */
+export function LogResult(level: TLoggerLogLevel, label?: TLoggerLogLabel) {
   return function<
     This,
     Args extends any[],
@@ -266,5 +262,36 @@ export function LogResult(level: TLoggerLogLevels, label?: TLoggerLogLabel) {
       Utils.log(level, res, label)
       return res
     }
+  }
+}
+
+/**
+ * This is a TypeScript function that logs HTTP requests and returns a promise.
+ * @param {Fn} target - The function that is being decorated with this LogRequest
+ * decorator.
+ * @param context - ClassMethodDecoratorContext is a type parameter that represents
+ * the context of the decorated method. It contains information about the class,
+ * method, and method parameters. In this case, it is used to provide context for
+ * the decorated function.
+ * @returns A decorator function that wraps around a given function and logs the
+ * HTTP request made by it. The wrapped function returns a Promise of type
+ * IRequestResult.
+ */
+export function LogRequest<
+  This,
+  Args extends any[],
+  Return extends Promise<IRequestResult>,
+  Fn extends (this: This, ...args: Args) => Return,
+>(
+  target: Fn,
+  context: ClassMethodDecoratorContext<This, Fn>,
+) {
+  return async function(this: This, ...args: Args): Promise<IRequestResult> {
+    const res: IRequestResult = await target.call(this, ...args)
+    if (!(<IUser>res.data)?.password && (<IRequestGetUpdates>res.data)?.needed !== false) {
+      Utils.log('http', res)
+    }
+
+    return res
   }
 }

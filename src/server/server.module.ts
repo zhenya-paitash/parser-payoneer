@@ -50,7 +50,7 @@ export class ServerModule implements IServerModule {
         throw new Error(`Server listen error ${error?.message}`)
       }
 
-        Utils.log('info', `Server Module is up and running at ${host}`, 'server')
+        Utils.log('info', `ServerModule is up and running at ${host}`, 'server')
     })
   }
 

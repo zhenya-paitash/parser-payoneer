@@ -16,7 +16,7 @@ export class ApiService implements IApiService {
    * constructor. The `Utils.log()`
    */
   constructor(private readonly requestService: RequestService) {
-    Utils.log('info', `Api Service connected.`, 'api')
+    Utils.log('info', `ApiService connected`, 'api')
   }
 
   /**

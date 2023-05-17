@@ -1,3 +1,4 @@
+import { resolve } from 'node:path'
 import { DotenvParseOutput, config } from 'dotenv'
 import { Utils } from '../utils/utils.module'
 import { IConfigService, IConfigProcessEnv, TConfigEnv } from './config.interface'
@@ -13,7 +14,8 @@ export class ConfigService implements IConfigService {
    * .env file and throwing errors if the file is not found or empty.
    */
   constructor() {
-    const { error, parsed } = config()
+    // explicitly specify the path .env for packaging the application in pkg
+    const { error, parsed } = config({ path: resolve(__dirname, '..', '..', '.env') })
     if (error) {
       throw new Error('.env: file not found')
     }

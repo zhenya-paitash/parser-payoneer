@@ -10,7 +10,7 @@ import {
   TLoggerLogCallback,
   TLoggerLogInfo,
   TLoggerLogLabel,
-  TLoggerLogLevels,
+  TLoggerLogLevel,
   TLoggerLogformFormat,
   TLoggerTelegramInfo,
   EnumLoggerLogLevelsEmoji,
@@ -42,13 +42,15 @@ export class Logger {
    */
   private createLogger(): TLogger {
     const winstonCustomFormat: TLoggerLogformFormat = winston.format.printf((info: TLoggerLogInfo) => {
-      const { level, timestamp, label } = info
-      const lvl = `${EnumLoggerLogLevelsEmoji[level as TLoggerLogLevels]} ${level.toUpperCase()}`
-      const time = new Date(timestamp).toLocaleString('ru-RU', { timeZone: 'Europe/Minsk' })
-      let msg = info.message
-      if (msg instanceof Object) msg = JSON.stringify(msg)
-
-      return `${lvl} [${time}] ${label ?? 'app'}: ${msg}`
+      const { level, timestamp, label, message } = info
+      const lvl = `${EnumLoggerLogLevelsEmoji[level as TLoggerLogLevel]} ${level.toUpperCase()}`
+      const time = new Date(timestamp).toLocaleString('ru-RU', {
+        timeZone: 'Europe/Minsk',
+        dateStyle: "short",
+        timeStyle: "medium",
+      })
+      const msg = message instanceof Object ? JSON.stringify(message) : message
+      return `${lvl} [${time}] ${label ?? '***'}: ${msg}`
     })
 
     /* The `createLogger()` method is creating a new instance of the
@@ -61,25 +63,32 @@ export class Logger {
     return winston.createLogger({
       level: 'info',
       format: winston.format.combine(
-        // winston.format.label({ label: 'app' }),
         winston.format.timestamp(),
         winstonCustomFormat
       ),
       transports: [
         new winston.transports.Console({
-          format: winston.format.combine(winston.format.colorize({ all: true }))
+          format: winston.format.combine(winston.format.colorize({ all: true })),
+          handleExceptions: true,
         }),
+
         new JsonLogger({
           format: winston.format.combine(winston.format.errors({ stack: true }), winston.format.json()),
+          handleExceptions: true
         }),
+
         new winston.transports.File({
           filename: 'error.log',
-          level: 'error'
+          level: 'error',
+          handleExceptions: true,
         }),
+
         new winston.transports.File({
           filename: 'combine.log',
         })
       ],
+
+      exitOnError: false
     })
   }
 
@@ -87,7 +96,7 @@ export class Logger {
    * This function logs a message with a specified level and label, and handles any
    * errors that may occur.
    * 
-   * @param level The level of the log message, which is of type TLoggerLogLevels.
+   * @param level The level of the log message, which is of type TLoggerLogLevel.
    * This could be "debug", "info", "warn", "http" or "error".
    * @param message The message parameter is a string or any other data type that
    * represents the log message to be recorded. It could be an error message, a
@@ -98,11 +107,11 @@ export class Logger {
    * If no label is provided, it will default to `undefined`.
    * @return The function `log` returns an instance of `TLogger`.
    */
-  public log(level: TLoggerLogLevels, message: string | any, label?: TLoggerLogLabel): TLogger {
+  public log(level: TLoggerLogLevel, message: string | any, label?: TLoggerLogLabel): TLogger {
     try {
       return this._logger[level](message, { label })
     } catch (e: Error | any) {
-      this._logger.warn(`LoggerError: ${e?.message}`, { label: 'logger' })
+      this._logger.warn(`Logger. Error: ${e?.message}`, { label: 'logger' })
       return this._logger.error(message, { label })
     }
   }

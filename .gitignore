@@ -1,9 +1,8 @@
-/node_modules
-/dist
-/OLD
-/.vscode
-/.userdata_cache
-/src/config/config.pkg.service.ts
+dist/
+node_modules/
+
+.userdata_cache/
+.vscode/
 
 .env
 combine.log

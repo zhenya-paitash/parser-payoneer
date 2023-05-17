@@ -13,16 +13,16 @@ import {
   TParserCaptchaAudio
 } from './parser.interface'
 import { IApiService } from '../api/api.interface'
-import { IRequestResult } from '../request/request.interface'
+import { IRequestCaptchaResolve, IRequestResult } from '../request/request.interface'
 import { ExistPuppeteerBrowser, ExistPuppeteerPage } from '../decorators'
 
 /* The ParserController class is a TypeScript implementation of a parser that logs
 into a Payoneer account and retrieves user data such as balances and transaction
 history. */
 export class ParserController implements IParserController {
-  private _browser?: Browser | null
-  private _config?: Configuration
+  private _browser?: Browser
   private _page?: Page
+  private _config: Configuration
   chrome: string
   urls: IParserPayoneerUrls = {
     login: 'https://login.payoneer.com',
@@ -71,7 +71,7 @@ export class ParserController implements IParserController {
       await this.getAccountData(user.username, user.password)
       this.success = true
     } catch (e: Error | any) {
-      this.errors.push(e?.message)
+      this.errors.push(e.message)
       Utils.log('error', `Errors: ${this.errors.join('  ➜  ')}`, 'parser')
     } finally {
       await this.$disconnect()
@@ -123,7 +123,7 @@ export class ParserController implements IParserController {
    */
   private async $disconnect(): Promise<void> {
     this._browser?.close()
-    this._browser = null
+    this._browser = undefined
   }
 
   /**
@@ -242,11 +242,11 @@ export class ParserController implements IParserController {
     page. It first clicks on the input field for the username, types in the
     provided username, waits for 1 second, then does the same for the password
     input field. This code is likely part of an automated testing script. */
-    // username
+    // + username
     await inputUsername.click({ clickCount: 3 })
     await inputUsername.type(username)
     await this.wait(1)
-    // password
+    // + password
     await inputPassword.click({ clickCount: 3 })
     await inputPassword.type(password)
     await this.wait(1)
@@ -261,18 +261,17 @@ export class ParserController implements IParserController {
     const captcha = await form.$('div.logInForm__captcha > div.google-captcha-wrap')
     if (captcha) {
       // 1. get audio
-      const audio: TParserCaptchaAudio = await this.getCaptchaAudioContent(captcha)
-      if (!audio.success && audio.error) {
-        throw new Error(audio.error)
+      const getAudio: TParserCaptchaAudio = await this.getCaptchaAudioContent(captcha)
+      if (!getAudio.success && getAudio.error) {
+        throw new Error(getAudio.error)
       }
       // 2. send audio on REST API and get response
-      console.log(audio.audio)
-      const result: IRequestResult = await this.apiService.sendCaptcha(audio.audio)
-      console.log(result)
+      const result: IRequestResult = await this.apiService.sendCaptcha(getAudio.audio)
+      if (!result.success && result.error) {
+        throw new Error(result.error)
+      }
       // 3. try login
-      await this.inputCaptchaAudioResult(result)
-      // TODO: delete-next-line
-      await this.wait(600)
+      await this.inputCaptchaAudioResult(result.data as IRequestCaptchaResolve)
     }
 
     // ? SUBMIT
@@ -319,29 +318,25 @@ export class ParserController implements IParserController {
   }
 
   /**
-   * This function inputs the resolved captcha audio result into the corresponding
+   * This function inputs the resolved audio captcha solution into the appropriate
    * input field on a webpage.
-   * @param {IRequestResult} apiCaptchaResult - The parameter `apiCaptchaResult` is
-   * of type `IRequestResult`, which is likely an object containing the result of a
-   * request made to an API for captcha resolution. This function uses the resolved
-   * captcha value from this object to input it into the captcha audio challenge on
-   * a web page.
+   * @param {IRequestCaptchaResolve} apiCaptchaResolve - The parameter
+   * `apiCaptchaResolve` is an object that contains the solution to a captcha
+   * challenge. It is of type `IRequestCaptchaResolve`.
    */
-  private async inputCaptchaAudioResult(apiCaptchaResult: IRequestResult): Promise<void> {
+  private async inputCaptchaAudioResult(apiCaptchaResolve: IRequestCaptchaResolve): Promise<void> {
     try {
       if (!this._page) throw new Error('this._page not found')
+      if (!apiCaptchaResolve?.success) throw new Error('captcha solution not successful')
       const iframe = await this._page.$('iframe[title="recaptcha challenge expires in two minutes"]')
       const iframeContent = await iframe?.contentFrame()
       if (!iframeContent) throw new Error(`iframe not found`)
       const input: ElementHandle<HTMLInputElement> | null = await iframeContent.$('input#audio-response')
       if (!input) throw new Error('input not found')
       await input.click()
-      // TODO: input resolve from apiCaptchaResult
-      // await input.type(apiCaptchaResult.data?.captchaResolve)
-      await input.type('TEST CAPTCHA RESOLVE')
+      await input.type(apiCaptchaResolve?.solution)
       await input.press('Enter')
       await this.wait(2)
-      // TODO: error element always find?
       const modalError = await iframeContent.$('.rc-audiochallenge-error-message')
       const modalErrorMessage = await modalError?.evaluate(el => (<HTMLElement>el)?.innerText)
       if (modalErrorMessage) throw new Error(modalErrorMessage)
@@ -380,7 +375,6 @@ export class ParserController implements IParserController {
         await this._page.waitForSelector(balancesSelector)
         await this._page.waitForSelector(transactionsSelector)
         await this._page.waitForSelector(detailsSelector)
-
         break
       } catch (e) {
         await this._page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
@@ -446,7 +440,7 @@ export class ParserController implements IParserController {
     status, and amount. It then creates an object with this information and
     returns an array of these objects as the output. Finally, it assigns this
     output to the "transactions" property of an object called "data". */
-    const transactions = await transactionsEl?.$$eval('div.transaction-row', rows => rows.map(row => {
+    const transactions = await transactionsEl?.$$eval('div.transaction-row', (rows: HTMLElement[]) => rows.map((row: HTMLElement) => {
       // GET ELEMENTS
       const dateEl: HTMLElement | null = row.querySelector('.transaction-date')
       const descriptionEl: HTMLElement | null = row.querySelector('.transaction-description')

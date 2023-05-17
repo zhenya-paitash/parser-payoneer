@@ -27,9 +27,8 @@ export class ServerController implements IServerController {
    */
   @LogServer
   async getAll(req: FastifyRequest, res: FastifyReply): Promise<IServerResponse> {
-    // TODO: watch logs
     const root = path.join(process.env?.LOCALAPPDATA ?? './', '.payoneer')
-    const logs: string[] = fs.readdirSync(root)
+    const logs: string[] = fs.readdirSync(root).filter(log => log.endsWith('.json'))
     const data: TServerLogData = {}
 
     for (const log of logs) {
